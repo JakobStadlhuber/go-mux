@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -15,13 +16,9 @@ var a App
 
 func TestMain(m *testing.M) {
 	a.Initialize(
-		/*os.Getenv("APP_DB_USERNAME"),
+		os.Getenv("APP_DB_USERNAME"),
 		os.Getenv("APP_DB_PASSWORD"),
-		os.Getenv("APP_DB_NAME")*/
-		"postgres",
-		"postgres",
-		"go",
-	)
+		os.Getenv("APP_DB_NAME"))
 
 	ensureTableExists()
 	code := m.Run()
@@ -187,4 +184,61 @@ func TestDeleteProduct(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/product/1", nil)
 	response = executeRequest(req)
 	checkResponseCode(t, http.StatusNotFound, response.Code)
+}
+
+func TestProductPriceFilter(t *testing.T) {
+
+	clearTable()
+
+	var jsonStr = []byte(`{"name":"test product", "price": 11.22}`)
+	req, _ := http.NewRequest("POST", "/product", bytes.NewBuffer(jsonStr))
+	req.Header.Set("Content-Type", "application/json")
+
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusCreated, response.Code)
+
+	var jsonStr2 = []byte(`{"name":"test product2", "price": 4.22}`)
+	req2, _ := http.NewRequest("POST", "/product", bytes.NewBuffer(jsonStr2))
+	req2.Header.Set("Content-Type", "application/json")
+
+	response2 := executeRequest(req2)
+	checkResponseCode(t, http.StatusCreated, response2.Code)
+
+	var jsonStr3 = []byte(`{"name":"test product3", "price": 10.22}`)
+	req3, _ := http.NewRequest("POST", "/product", bytes.NewBuffer(jsonStr3))
+	req2.Header.Set("Content-Type", "application/json")
+
+	response3 := executeRequest(req3)
+	checkResponseCode(t, http.StatusCreated, response3.Code)
+
+	var startPrice = 10
+	var endPrice = 20
+
+	req4, _ := http.NewRequest("GET", fmt.Sprintf("/productPriceFilter?start=%d&end=%d", startPrice, endPrice), nil)
+	response4 := executeRequest(req4)
+
+	checkResponseCode(t, http.StatusOK, response4.Code)
+
+	var resultProduct []product
+	json.Unmarshal(response4.Body.Bytes(), &resultProduct)
+
+	if len(resultProduct) != 2 {
+		t.Errorf("Expected two products. Got %d", len(resultProduct))
+	}
+
+	for _, result := range resultProduct {
+		if int(result.Price) < startPrice || int(result.Price) > endPrice {
+			t.Errorf("Price not in range. Got %f", result.Price)
+		}
+	}
+}
+
+func TestGetProductWithName(t *testing.T) {
+	clearTable()
+	a.DB.Exec("INSERT INTO products(name, price) VALUES($1, $2)", "ProductTest", 10)
+
+	req, _ := http.NewRequest("GET", "/product/ProductTest", nil)
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
 }

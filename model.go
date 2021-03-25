@@ -64,3 +64,32 @@ func getProducts(db *sql.DB, start, count int) ([]product, error) {
 
 	return products, nil
 }
+
+func getProductsMoneyFilter(db *sql.DB, start, end int) ([]product, error) {
+	rows, err := db.Query(
+		"SELECT id, name,  price FROM products WHERE price > $1 AND price < $2",
+		start, end)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	products := []product{}
+
+	for rows.Next() {
+		var p product
+		if err := rows.Scan(&p.ID, &p.Name, &p.Price); err != nil {
+			return nil, err
+		}
+		products = append(products, p)
+	}
+
+	return products, nil
+}
+
+func (p *product) getProductWithName(db *sql.DB) error {
+	return db.QueryRow("SELECT name, price FROM products WHERE name=$1",
+		p.Name).Scan(&p.Name, &p.Price)
+}

@@ -235,9 +235,12 @@ func TestProductPriceFilter(t *testing.T) {
 
 func TestGetProductWithName(t *testing.T) {
 	clearTable()
-	a.DB.Exec("INSERT INTO products(name, price) VALUES($1, $2)", "ProductTest", 10)
 
-	req, _ := http.NewRequest("GET", "/product/ProductTest", nil)
+	var filterName = "ProductTest"
+
+	a.DB.Exec("INSERT INTO products(name, price) VALUES($1, $2)", filterName, 10)
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/product/%s", filterName), nil)
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusOK, response.Code)

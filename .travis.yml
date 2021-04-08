@@ -16,3 +16,4 @@ env:
 
 script:
   - go test -v ./...
+  - CGO_ENABLED=0 GOARCH=amd64 go build -o go-mux

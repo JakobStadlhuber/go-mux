@@ -12,9 +12,7 @@ before_script:
   - psql -c "CREATE USER foo WITH PASSWORD 'postgres';" -U postgres
 
 env:
-  - APP_DB_USERNAME=postgres
-  - APP_DB_PASSWORD=postgres
-  - APP_DB_NAME="go"
+  - APP_DB_USERNAME=postgres APP_DB_PASSWORD=postgres APP_DB_NAME=go
 
 script:
   - go test -v ./...

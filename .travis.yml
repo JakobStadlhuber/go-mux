@@ -6,6 +6,7 @@ go:
 
 services:
   - postgresql
+  - docker
 
 before_script:
   - psql -c "CREATE DATABASE go;" -U postgres
@@ -17,3 +18,9 @@ env:
 script:
   - go test -v ./...
   - CGO_ENABLED=0 GOARCH=amd64 go build -o go-mux
+  - echo "$REGISTRY_PASSWORD" | docker login --username $REGISTRY_USER --password-stdin
+  - docker build -f Dockerfile -t jakobstadlhuber/go-mux:latest ./
+  - GIT_SHA="$(git rev-parse --short HEAD)"
+  - docker tag jakobstadlhuber/go-mux:latest jakobstadlhuber/go-mux:$GIT_SHA
+  - docker push jakobstadlhuber/go-mux:latest
+  - docker push jakobstadlhuber/go-mux:$GIT_SHA

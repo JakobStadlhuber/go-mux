@@ -21,7 +21,7 @@ RUN go build -o myapp
 
 #Expose port 8888
 
-EXPOSE 8888
+EXPOSE 8010
 
 # Run the service myapp when a container of this image is launched
 CMD ./myapp

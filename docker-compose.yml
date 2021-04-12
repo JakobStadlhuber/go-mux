@@ -1,0 +1,22 @@
+version: "2"
+services:
+  app:
+    image: jakobstadlhuber/my-app:0.0.1
+    ports:
+      - "8010:8010"
+    environment:
+      - APP_DB_HOST=postgres
+      - APP_DB_USERNAME=user
+      - APP_DB_PASSWORD=pass
+      - APP_DB_NAME=dbtest
+  postgres:
+    image: postgres:9.5-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./init.sql:/docker-entrypoint-initdb.d/init.sql"
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=dbtest

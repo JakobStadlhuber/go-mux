@@ -1,7 +1,7 @@
 version: "2"
 services:
   app:
-    image: jakobstadlhuber/my-app:0.0.1
+    image: jakobstadlhuber/go-mux:latest
     ports:
       - "8010:8010"
     environment:
